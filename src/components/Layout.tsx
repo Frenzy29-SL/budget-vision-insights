@@ -33,7 +33,7 @@ const Layout = ({ children, title }: LayoutProps) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-background">
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#D3E4FD]">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
