@@ -1,325 +1,434 @@
-
-import Layout from "@/components/Layout";
-import { useBudget } from "@/contexts/BudgetContext";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useState } from 'react';
+import Layout from '@/components/Layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useBudget } from '@/contexts/BudgetContext';
 import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState } from "react";
-import { Separator } from "@/components/ui/separator";
-import {
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  TooltipProps,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  AreaChart,
-  Area
-} from "recharts";
-import {
-  BarChart3,
-  PieChart as PieChartIcon,
-  LineChart as LineChartIcon,
-  TrendingUp,
-  TrendingDown,
-} from "lucide-react";
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, 
+  Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line,
+  AreaChart, Area
+} from 'recharts';
+import { ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 
 const Analytics = () => {
+  const [timeframe, setTimeframe] = useState<'week' | 'month' | 'year'>('month');
   const { 
     getExpensesByCategory, 
-    getMonthlyTrends, 
+    getIncomeVsExpense, 
+    getMonthlyTrends,
     getDailySpendings,
-    categories,
     projectSavings
   } = useBudget();
-  
-  const [timeRange, setTimeRange] = useState<"3m" | "6m" | "1y">("6m");
-  const [savingsProjection, setSavingsProjection] = useState<"6m" | "1y" | "5y">("1y");
-  
+
+  const expensesByCategory = getExpensesByCategory();
+  const incomeVsExpense = getIncomeVsExpense();
   const monthlyTrends = getMonthlyTrends();
   const dailySpendings = getDailySpendings();
-  const categoryExpenses = getExpensesByCategory();
-  
-  // Format category expenses for pie chart
-  const pieData = Object.keys(categoryExpenses).map(catId => {
-    const category = categories.find(c => c.id === catId);
-    return {
-      name: category?.name || 'Other',
-      value: categoryExpenses[catId],
-      color: category?.color.replace('bg-', '') || 'budget-gray'
-    };
-  }).sort((a, b) => b.value - a.value);
-  
-  // Prepare savings projection data
-  const generateSavingsProjection = () => {
-    const months = savingsProjection === "6m" ? 6 : savingsProjection === "1y" ? 12 : 60;
-    const data = [];
-    const monthlySaving = projectSavings(1);
-    
-    for (let i = 0; i < months; i++) {
-      data.push({
-        month: i + 1,
-        savings: Math.round(monthlySaving * (i + 1))
-      });
-    }
-    return data;
-  };
-  
-  // Top spending categories ranking
-  const topSpendingCategories = pieData.slice(0, 5).map((item, index) => ({
-    ...item,
-    rank: index + 1
+  const projectedSavings = projectSavings(6);
+
+  // Transform data for pie chart
+  const pieData = Object.entries(expensesByCategory).map(([name, value]) => ({
+    name,
+    value
   }));
-  
-  // Calculate total income and expenses
-  const totalIncome = monthlyTrends.reduce((sum, month) => sum + month.income, 0);
-  const totalExpenses = monthlyTrends.reduce((sum, month) => sum + month.expense, 0);
-  
-  // Calculate savings rate
-  const savingsRate = totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0;
-  
-  const COLORS = [
-    '#9b87f5', '#7E69AB', '#60a5fa', '#4ade80', '#f87171', 
-    '#facc15', '#fb923c', '#8E9196', '#6E59A5', '#D6BCFA'
-  ];
+
+  // COLORS for charts
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
   
   return (
-    <Layout title="Analytics & Insights">
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="col-span-1 md:col-span-2 shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium">Expense Trends</h3>
-                <Select value={timeRange} onValueChange={(value) => setTimeRange(value as any)}>
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Time Range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="3m">3 Months</SelectItem>
-                    <SelectItem value="6m">6 Months</SelectItem>
-                    <SelectItem value="1y">1 Year</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyTrends}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`$${value}`, '']} 
-                      labelFormatter={(label) => `${label}`}
-                    />
-                    <Legend />
-                    <Bar dataKey="income" name="Income" fill="#4ade80" stackId="a" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="expense" name="Expenses" fill="#f87171" stackId="a" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+    <Layout title="Analytics">
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="income">Income</TabsTrigger>
+          <TabsTrigger value="expenses">Expenses</TabsTrigger>
+          <TabsTrigger value="trends">Trends</TabsTrigger>
+        </TabsList>
+        
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Income
+              </CardTitle>
+              <ArrowUpRight className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${incomeVsExpense.income.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                +20.1% from last month
+              </p>
             </CardContent>
           </Card>
           
-          <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-6">Expense Breakdown</h3>
-              <div className="h-64">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Expenses
+              </CardTitle>
+              <ArrowDownRight className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${incomeVsExpense.expense.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                +10.5% from last month
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Net Savings
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${(incomeVsExpense.income - incomeVsExpense.expense).toFixed(2)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {incomeVsExpense.income > incomeVsExpense.expense 
+                  ? `${((incomeVsExpense.income - incomeVsExpense.expense) / incomeVsExpense.income * 100).toFixed(1)}% of income`
+                  : 'Negative savings'}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Income vs Expenses</CardTitle>
+                <CardDescription>
+                  Comparison of your income and expenses
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { name: 'Income', amount: incomeVsExpense.income },
+                      { name: 'Expenses', amount: incomeVsExpense.expense }
+                    ]}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <RechartsTooltip 
+                      formatter={(value: any) => {
+                        if (typeof value === 'number') {
+                          return [`$${value.toFixed(2)}`, ''];
+                        }
+                        return [`${value}`, ''];
+                      }} 
+                    />
+                    <Bar dataKey="amount" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card className="col-span-1">
+              <CardHeader>
+                <CardTitle>Expenses by Category</CardTitle>
+                <CardDescription>
+                  Breakdown of your spending by category
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
+                      labelLine={false}
                       outerRadius={80}
-                      paddingAngle={5}
+                      fill="#8884d8"
                       dataKey="value"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     >
                       {pieData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, '']} />
-                    <Legend layout="vertical" verticalAlign="middle" align="right" />
+                    <RechartsTooltip 
+                      formatter={(value: any) => {
+                        if (typeof value === 'number') {
+                          return [`$${value.toFixed(2)}`, ''];
+                        }
+                        return [`${value}`, ''];
+                      }} 
+                    />
                   </PieChart>
                 </ResponsiveContainer>
-              </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Monthly Trends</CardTitle>
+              <CardDescription>
+                Your income and expenses over the past months
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={monthlyTrends}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <RechartsTooltip 
+                    formatter={(value: any) => {
+                      if (typeof value === 'number') {
+                        return [`$${value.toFixed(2)}`, ''];
+                      }
+                      return [`${value}`, ''];
+                    }} 
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="income" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  <Line type="monotone" dataKey="expense" stroke="#82ca9d" />
+                </LineChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
-        </div>
+        </TabsContent>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">Top Spending Categories</h3>
-              <div className="space-y-4">
-                {topSpendingCategories.map((category) => (
-                  <div key={category.name} className="flex items-center">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center bg-muted text-xs font-medium">
-                      {category.rank}
-                    </div>
-                    <div className="ml-3 flex-1">
-                      <div className="flex justify-between items-center">
-                        <span className="font-medium">{category.name}</span>
-                        <span className="font-medium">${category.value.toFixed(2)}</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-2 mt-1">
-                        <div 
-                          className="bg-budget-primary h-2 rounded-full" 
-                          style={{ width: `${(category.value / pieData[0].value) * 100}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+        <TabsContent value="income" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Income Trends</CardTitle>
+              <CardDescription>
+                Your income over time
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={monthlyTrends}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <RechartsTooltip 
+                    formatter={(value: any) => {
+                      if (typeof value === 'number') {
+                        return [`$${value.toFixed(2)}`, ''];
+                      }
+                      return [`${value}`, ''];
+                    }} 
+                  />
+                  <Area type="monotone" dataKey="income" stroke="#8884d8" fill="#8884d8" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="expenses" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Daily Spending</CardTitle>
+              <CardDescription>
+                Your spending patterns by day
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={dailySpendings}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <RechartsTooltip 
+                    formatter={(value: any) => {
+                      if (typeof value === 'number') {
+                        return [`$${value.toFixed(2)}`, ''];
+                      }
+                      return [`${value}`, ''];
+                    }} 
+                  />
+                  <Bar dataKey="amount" fill="#82ca9d" />
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
           
-          <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">Daily Spending Pattern</h3>
-              <div className="h-64">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Expense Categories</CardTitle>
+                <CardDescription>
+                  Breakdown of your expenses by category
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dailySpendings}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`$${value}`, 'Spent']} 
-                      labelFormatter={(label) => `${label}`}
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {pieData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      formatter={(value: any) => {
+                        if (typeof value === 'number') {
+                          return [`$${value.toFixed(2)}`, ''];
+                        }
+                        return [`${value}`, ''];
+                      }} 
                     />
-                    <Line 
-                      type="monotone" 
-                      dataKey="amount" 
-                      stroke="#9b87f5" 
-                      strokeWidth={2}
-                      dot={{ fill: '#9b87f5', r: 3 }}
-                      activeDot={{ fill: '#7E69AB', r: 5 }}
-                    />
-                  </LineChart>
+                  </PieChart>
                 </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Expense Categories</CardTitle>
+                <CardDescription>
+                  Your highest spending categories
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {Object.entries(expensesByCategory)
+                    .sort((a, b) => b[1] - a[1])
+                    .slice(0, 5)
+                    .map(([category, amount], index) => (
+                      <div key={category} className="flex items-center">
+                        <div className="w-2 h-2 rounded-full mr-2" style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{category}</div>
+                          <div className="h-2 w-full bg-muted rounded-full mt-1">
+                            <div 
+                              className="h-2 rounded-full" 
+                              style={{ 
+                                width: `${(amount / Object.values(expensesByCategory).reduce((a, b) => a + b, 0)) * 100}%`,
+                                backgroundColor: COLORS[index % COLORS.length]
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                        <div className="ml-2 text-sm font-medium">${amount.toFixed(2)}</div>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="trends" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Savings Projection</CardTitle>
+              <CardDescription>
+                Projected savings over the next 6 months
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm font-medium">Projected savings</p>
+                  <h3 className="text-2xl font-bold">${projectedSavings.toFixed(2)}</h3>
+                </div>
+                <div className="flex items-center">
+                  {projectedSavings > 0 ? (
+                    <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
+                  )}
+                  <span className={projectedSavings > 0 ? "text-green-500" : "text-red-500"}>
+                    {projectedSavings > 0 ? "Growing" : "Declining"}
+                  </span>
+                </div>
               </div>
+              
+              <ResponsiveContainer width="100%" height="80%">
+                <AreaChart
+                  data={Array.from({ length: 6 }, (_, i) => ({
+                    month: `Month ${i + 1}`,
+                    savings: projectedSavings / 6 * (i + 1)
+                  }))}
+                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <RechartsTooltip 
+                    formatter={(value: any) => {
+                      if (typeof value === 'number') {
+                        return [`$${value.toFixed(2)}`, ''];
+                      }
+                      return [`${value}`, ''];
+                    }} 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="savings" 
+                    stroke="#8884d8" 
+                    fill="#8884d8" 
+                    fillOpacity={0.3}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
           
-          <Card className="shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Savings Projection</h3>
-                <Select value={savingsProjection} onValueChange={(value) => setSavingsProjection(value as any)}>
-                  <SelectTrigger className="w-24">
-                    <SelectValue placeholder="Period" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="6m">6 Mo</SelectItem>
-                    <SelectItem value="1y">1 Year</SelectItem>
-                    <SelectItem value="5y">5 Years</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={generateSavingsProjection()}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                    <XAxis dataKey="month" label={{ value: 'Months', position: 'insideBottom', offset: -5 }} />
-                    <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`$${value}`, 'Savings']} 
-                      labelFormatter={(label) => `Month ${label}`}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="savings" 
-                      stroke="#4ade80" 
-                      fill="#4ade80" 
-                      fillOpacity={0.3} 
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Income vs Expenses Trend</CardTitle>
+              <CardDescription>
+                Comparison over time
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={monthlyTrends}
+                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <RechartsTooltip 
+                    formatter={(value: any) => {
+                      if (typeof value === 'number') {
+                        return [`$${value.toFixed(2)}`, ''];
+                      }
+                      return [`${value}`, ''];
+                    }} 
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="income" stroke="#8884d8" activeDot={{ r: 8 }} />
+                  <Line type="monotone" dataKey="expense" stroke="#82ca9d" />
+                </LineChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
-        </div>
-        
-        <Card className="shadow-sm">
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-6">Financial Health Metrics</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Savings Rate</span>
-                  <div className={savingsRate >= 20 ? "text-budget-green" : "text-budget-orange"}>
-                    {savingsRate >= 20 ? (
-                      <TrendingUp size={18} />
-                    ) : (
-                      <TrendingDown size={18} />
-                    )}
-                  </div>
-                </div>
-                <div className="text-2xl font-bold mb-1">{savingsRate.toFixed(1)}%</div>
-                <p className="text-xs text-muted-foreground">
-                  {savingsRate >= 20 
-                    ? "Excellent! You're saving well above average."
-                    : "Consider increasing your savings rate to at least 20%."}
-                </p>
-              </div>
-              
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Income to Expense Ratio</span>
-                  <div className={totalIncome > totalExpenses * 1.5 ? "text-budget-green" : "text-budget-orange"}>
-                    {totalIncome > totalExpenses * 1.5 ? (
-                      <TrendingUp size={18} />
-                    ) : (
-                      <TrendingDown size={18} />
-                    )}
-                  </div>
-                </div>
-                <div className="text-2xl font-bold mb-1">
-                  {totalIncome > 0 ? (totalIncome / totalExpenses).toFixed(2) : "0"}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {totalIncome > totalExpenses * 1.5
-                    ? "Strong ratio indicates good financial health."
-                    : "Try to increase this ratio for better financial security."}
-                </p>
-              </div>
-              
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-muted-foreground">Monthly Savings</span>
-                  <div className="text-budget-primary">
-                    <TrendingUp size={18} />
-                  </div>
-                </div>
-                <div className="text-2xl font-bold mb-1">
-                  ${(totalIncome - totalExpenses).toFixed(2)}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Average monthly amount available for savings or investments.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        </TabsContent>
+      </Tabs>
     </Layout>
   );
 };

@@ -63,19 +63,35 @@ const Layout = ({ children, title }: LayoutProps) => {
           
           <Separator className="my-4" />
           
-          <div className="mt-2 mb-4">
-            <div className="px-4 py-2 bg-sidebar-accent rounded-lg">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-sidebar-primary rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm uppercase">{profile.type.charAt(0)}</span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium capitalize">{profile.type} Profile</span>
-                  <span className="text-xs text-muted-foreground capitalize">{profile.budgetingStyle}</span>
+          {profile ? (
+            <div className="mt-2 mb-4">
+              <div className="px-4 py-2 bg-sidebar-accent rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-sidebar-primary rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm uppercase">{profile.type.charAt(0)}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium capitalize">{profile.type} Profile</span>
+                    <span className="text-xs text-muted-foreground capitalize">{profile.budgetingStyle}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="mt-2 mb-4">
+              <div className="px-4 py-2 bg-sidebar-accent rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-sidebar-primary rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm">...</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">Loading profile...</span>
+                    <span className="text-xs text-muted-foreground">Please wait</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           <nav className="space-y-1 mt-4 flex-1">
             {navigation.map((item) => {
@@ -100,18 +116,30 @@ const Layout = ({ children, title }: LayoutProps) => {
             })}
           </nav>
           
-          <div className="mt-auto p-4 bg-sidebar-accent rounded-lg">
-            <h3 className="font-medium text-sm">Monthly Savings Goal</h3>
-            <div className="mt-2 flex items-center">
-              <div className="flex-1 bg-sidebar-border h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-budget-primary h-2 rounded-full" 
-                  style={{ width: `${Math.min((profile.savingsTarget / (profile.income * 0.2)) * 100, 100)}%` }}
-                ></div>
+          {profile ? (
+            <div className="mt-auto p-4 bg-sidebar-accent rounded-lg">
+              <h3 className="font-medium text-sm">Monthly Savings Goal</h3>
+              <div className="mt-2 flex items-center">
+                <div className="flex-1 bg-sidebar-border h-2 rounded-full overflow-hidden">
+                  <div 
+                    className="bg-budget-primary h-2 rounded-full" 
+                    style={{ width: `${Math.min((profile.savingsTarget / (profile.income * 0.2)) * 100, 100)}%` }}
+                  ></div>
+                </div>
+                <span className="ml-2 text-xs">${profile.savingsTarget}</span>
               </div>
-              <span className="ml-2 text-xs">${profile.savingsTarget}</span>
             </div>
-          </div>
+          ) : (
+            <div className="mt-auto p-4 bg-sidebar-accent rounded-lg">
+              <h3 className="font-medium text-sm">Monthly Savings Goal</h3>
+              <div className="mt-2 flex items-center">
+                <div className="flex-1 bg-sidebar-border h-2 rounded-full overflow-hidden">
+                  <div className="bg-budget-primary h-2 rounded-full w-0"></div>
+                </div>
+                <span className="ml-2 text-xs">Loading...</span>
+              </div>
+            </div>
+          )}
         </div>
       </aside>
       
