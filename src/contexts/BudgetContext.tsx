@@ -12,7 +12,7 @@ interface BudgetContextType {
   goals: Goal[];
   insights: FinancialInsight[];
   categories: Category[];
-  profile: Profile;
+  profile: Profile | null;
   isLoading: boolean;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   updateBudget: (budget: Budget) => void;
@@ -148,7 +148,7 @@ export const BudgetProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         goals,
         insights,
         categories,
-        profile: profile!,
+        profile,
         isLoading,
         addTransaction,
         updateBudget,

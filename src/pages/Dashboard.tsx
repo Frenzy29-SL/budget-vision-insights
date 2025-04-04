@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   ArrowUpRight, ArrowDownRight, BarChart3, Wallet, PlusCircle,
-  TrendingDown, TrendingUp
+  TrendingDown, TrendingUp, Target
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -17,7 +17,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   LineChart,
   Line,
   PieChart,
@@ -47,6 +47,17 @@ const Dashboard = () => {
   const dailySpendings = getDailySpendings();
   const categoryExpenses = getExpensesByCategory();
 
+  // Handle potential null profile
+  if (!profile) {
+    return (
+      <Layout title="Dashboard">
+        <div className="flex items-center justify-center h-64">
+          <p>Loading profile data...</p>
+        </div>
+      </Layout>
+    );
+  }
+
   const pieData = Object.keys(categoryExpenses).map(catId => {
     const category = categories.find(c => c.id === catId);
     return {
@@ -64,6 +75,14 @@ const Dashboard = () => {
     '#9b87f5', '#7E69AB', '#60a5fa', '#4ade80', '#f87171', 
     '#facc15', '#fb923c', '#8E9196', '#6E59A5', '#D6BCFA'
   ];
+
+  // Custom formatters for Recharts tooltips
+  const formatTooltipValue = (value: any) => {
+    if (typeof value === 'number') {
+      return `$${value.toFixed(2)}`;
+    }
+    return value;
+  };
 
   return (
     <Layout title="Dashboard">
@@ -143,9 +162,9 @@ const Dashboard = () => {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="month" />
                       <YAxis />
-                      <Tooltip 
-                        formatter={(value) => [`$${value}`, '']} 
-                        labelFormatter={(label) => `${label}`}
+                      <RechartsTooltip 
+                        formatter={(value: any) => [formatTooltipValue(value), '']} 
+                        labelFormatter={(label: any) => `${label}`}
                       />
                       <Bar dataKey="income" name="Income" fill="#4ade80" radius={[4, 4, 0, 0]} />
                       <Bar dataKey="expense" name="Expenses" fill="#f87171" radius={[4, 4, 0, 0]} />
@@ -159,9 +178,9 @@ const Dashboard = () => {
                       <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                       <XAxis dataKey="date" />
                       <YAxis />
-                      <Tooltip 
-                        formatter={(value) => [`$${value}`, 'Spent']} 
-                        labelFormatter={(label) => `${label}`}
+                      <RechartsTooltip 
+                        formatter={(value: any) => [formatTooltipValue(value), 'Spent']} 
+                        labelFormatter={(label: any) => `${label}`}
                       />
                       <Line 
                         type="monotone" 
@@ -186,13 +205,15 @@ const Dashboard = () => {
                         outerRadius={100}
                         paddingAngle={5}
                         dataKey="value"
-                        label={({name, percent}) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({name, percent}: {name: string, percent: number}) => 
+                          `${name} ${(percent * 100).toFixed(0)}%`
+                        }
                       >
                         {pieData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, '']} />
+                      <RechartsTooltip formatter={(value: any) => [formatTooltipValue(value), '']} />
                     </PieChart>
                   </ResponsiveContainer>
                 </TabsContent>
