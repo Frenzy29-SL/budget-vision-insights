@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useBudget } from "@/contexts/BudgetContext";
@@ -91,31 +90,31 @@ const Dashboard = () => {
         <div className="col-span-1 md:col-span-2 space-y-6">
           {/* Balance cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-purple-100 shadow-sm hover:shadow-md transition-shadow border-purple-200">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center">
-                  <div className="text-muted-foreground">Total Balance</div>
+                  <div className="text-purple-800">Total Balance</div>
                   <div className="bg-budget-primary/10 p-2 rounded-full">
                     <Wallet size={20} className="text-budget-primary" />
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-bold">${balance.toFixed(2)}</div>
-                  <div className="text-xs text-muted-foreground mt-1">Current funds</div>
+                  <div className="text-2xl font-bold text-purple-900">${balance.toFixed(2)}</div>
+                  <div className="text-xs text-purple-700 mt-1">Current funds</div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-purple-100 shadow-sm hover:shadow-md transition-shadow border-purple-200">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center">
-                  <div className="text-muted-foreground">Income</div>
+                  <div className="text-purple-800">Income</div>
                   <div className="bg-budget-green/10 p-2 rounded-full">
                     <ArrowUpRight size={20} className="text-budget-green" />
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-bold">${income.toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-purple-900">${income.toFixed(2)}</div>
                   <div className="text-xs text-green-600 flex items-center mt-1">
                     <TrendingUp size={14} className="mr-1" />
                     <span>+10% from last month</span>
@@ -124,16 +123,16 @@ const Dashboard = () => {
               </CardContent>
             </Card>
             
-            <Card className="shadow-sm hover:shadow-md transition-shadow">
+            <Card className="bg-purple-100 shadow-sm hover:shadow-md transition-shadow border-purple-200">
               <CardContent className="p-6">
                 <div className="flex justify-between items-center">
-                  <div className="text-muted-foreground">Expenses</div>
+                  <div className="text-purple-800">Expenses</div>
                   <div className="bg-budget-red/10 p-2 rounded-full">
                     <ArrowDownRight size={20} className="text-budget-red" />
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-bold">${expense.toFixed(2)}</div>
+                  <div className="text-2xl font-bold text-purple-900">${expense.toFixed(2)}</div>
                   <div className="text-xs text-red-500 flex items-center mt-1">
                     <TrendingDown size={14} className="mr-1" />
                     <span>+5% from last month</span>
@@ -144,11 +143,11 @@ const Dashboard = () => {
           </div>
           
           {/* Chart section */}
-          <Card className="shadow-sm">
+          <Card className="bg-purple-50 shadow-sm border-purple-200">
             <CardContent className="p-6">
               <Tabs defaultValue="monthly">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium">Financial Overview</h3>
+                  <h3 className="text-lg font-medium text-purple-900">Financial Overview</h3>
                   <TabsList>
                     <TabsTrigger value="monthly">Monthly</TabsTrigger>
                     <TabsTrigger value="daily">Daily</TabsTrigger>
@@ -222,10 +221,10 @@ const Dashboard = () => {
           </Card>
           
           {/* Recent transactions */}
-          <Card className="shadow-sm">
+          <Card className="bg-purple-50 shadow-sm border-purple-200">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium">Recent Transactions</h3>
+                <h3 className="text-lg font-medium text-purple-900">Recent Transactions</h3>
                 <Button variant="outline" size="sm" onClick={toggleTransactionForm}>
                   <PlusCircle size={16} className="mr-2" />
                   Add New
@@ -258,14 +257,14 @@ const Dashboard = () => {
         {/* Right column - Insights and goals */}
         <div className="space-y-6">
           {/* Profile card */}
-          <Card className="shadow-sm">
+          <Card className="bg-purple-50 shadow-sm border-purple-200">
             <CardContent className="p-6">
               <div className="flex items-center mb-4">
                 <div className="w-12 h-12 bg-budget-primary rounded-full flex items-center justify-center">
                   <span className="text-white text-lg font-bold uppercase">{profile.type.charAt(0)}</span>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-medium capitalize">{profile.type} Profile</h3>
+                  <h3 className="text-lg font-medium capitalize text-purple-900">{profile.type} Profile</h3>
                   <p className="text-sm text-muted-foreground capitalize">{profile.budgetingStyle} budget style</p>
                 </div>
               </div>
@@ -292,17 +291,17 @@ const Dashboard = () => {
           </Card>
           
           {/* Insights */}
-          <Card className="shadow-sm">
+          <Card className="bg-purple-50 shadow-sm border-purple-200">
             <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">Financial Insights</h3>
+              <h3 className="text-lg font-medium text-purple-900 mb-4">Financial Insights</h3>
               <div className="space-y-4">
                 {insights.map((insight) => (
                   <div 
                     key={insight.id} 
-                    className="p-3 border border-border rounded-lg hover:border-budget-primary/50 transition-colors"
+                    className="p-3 border border-purple-200 bg-white rounded-lg hover:border-budget-primary/50 transition-colors"
                   >
                     <div className="flex justify-between items-start">
-                      <h4 className="font-medium">{insight.title}</h4>
+                      <h4 className="font-medium text-purple-900">{insight.title}</h4>
                       <div 
                         className={`text-xs font-semibold px-2 py-1 rounded-full ${
                           insight.type === 'saving' ? 'bg-budget-green/10 text-budget-green' :
@@ -328,9 +327,9 @@ const Dashboard = () => {
           </Card>
           
           {/* Quick Actions */}
-          <Card className="shadow-sm">
+          <Card className="bg-purple-50 shadow-sm border-purple-200">
             <CardContent className="p-6">
-              <h3 className="text-lg font-medium mb-4">Quick Actions</h3>
+              <h3 className="text-lg font-medium text-purple-900 mb-4">Quick Actions</h3>
               <div className="grid grid-cols-2 gap-2">
                 <Button className="justify-start" variant="outline" asChild>
                   <a href="/transactions">
