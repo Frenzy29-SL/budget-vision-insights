@@ -6,20 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Mail, Lock } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [gender, setGender] = useState<"male" | "female" | "other" | "">("");
   const navigate = useNavigate();
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     
     // Basic validation
-    if (!email || !password || !gender) {
+    if (!email || !password) {
       toast({
         title: "Validation Error",
         description: "Please fill in all fields",
@@ -79,24 +77,6 @@ const Login = () => {
                   required
                 />
               </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Gender</Label>
-              <RadioGroup value={gender} onValueChange={(value) => setGender(value as "male" | "female" | "other")}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="male" id="male" />
-                  <Label htmlFor="male">Male</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="female" id="female" />
-                  <Label htmlFor="female">Female</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="other" id="other" />
-                  <Label htmlFor="other">Other</Label>
-                </div>
-              </RadioGroup>
             </div>
           </CardContent>
           

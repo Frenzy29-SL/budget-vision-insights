@@ -33,7 +33,7 @@ export interface Goal {
   priority: 'low' | 'medium' | 'high';
 }
 
-export type ProfileType = 'employee' | 'student' | 'housewife' | 'other';
+export type ProfileType = 'employee' | 'student' | 'housewife';
 
 export interface Profile {
   type: ProfileType;
