@@ -92,12 +92,12 @@ interface ProfileCardProps {
 const ProfileCard = ({ title, description, icon, isSelected, onClick }: ProfileCardProps) => {
   return (
     <div
-      className={`flex cursor-pointer flex-col items-center rounded-lg border p-6 transition-all hover:border-primary hover:shadow-md ${
-        isSelected ? "border-primary bg-primary/5" : "border-border"
+      className={`flex cursor-pointer flex-col items-center rounded-lg border p-6 transition-all hover:shadow-md ${
+        isSelected ? "border-[#D946EF] bg-[#E5DEFF]" : "border-border bg-white"
       }`}
       onClick={onClick}
     >
-      <div className={`mb-4 rounded-full p-3 ${isSelected ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+      <div className={`mb-4 rounded-full p-3 ${isSelected ? "bg-[#D946EF]/20 text-[#D946EF]" : "bg-muted text-muted-foreground"}`}>
         {icon}
       </div>
       <h3 className="mb-2 text-lg font-semibold">{title}</h3>
