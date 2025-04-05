@@ -11,6 +11,7 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { useBudget } from "@/contexts/BudgetContext";
+import { toast } from "@/hooks/use-toast";
 
 interface TransactionFormProps {
   onComplete: () => void;
@@ -30,6 +31,11 @@ const TransactionForm = ({ onComplete }: TransactionFormProps) => {
     const category = categories.find(cat => cat.id === categoryId);
     
     if (!category || !amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+      toast({
+        title: "Invalid input",
+        description: "Please fill out all required fields correctly.",
+        variant: "destructive",
+      });
       return;
     }
     
@@ -45,6 +51,11 @@ const TransactionForm = ({ onComplete }: TransactionFormProps) => {
     setAmount("");
     setDescription("");
     setCategoryId("");
+    
+    toast({
+      title: "Transaction added",
+      description: "Your transaction has been added successfully.",
+    });
     
     onComplete();
   };
@@ -100,11 +111,15 @@ const TransactionForm = ({ onComplete }: TransactionFormProps) => {
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
             <SelectContent>
-              {filteredCategories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
-                </SelectItem>
-              ))}
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id || "default-category"}>
+                    {category.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem value="no-categories">No categories available</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
