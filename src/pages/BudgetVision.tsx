@@ -36,7 +36,7 @@ const BudgetVision = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-3xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Choose Your Profile</CardTitle>
