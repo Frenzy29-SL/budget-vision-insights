@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useBudget } from "@/contexts/BudgetContext";
@@ -21,7 +20,7 @@ import {
   LifeBuoy, MonitorSmartphone, SlidersHorizontal, ShieldCheck
 } from "lucide-react";
 import { ProfileType } from "@/types/budget";
-import { EditableAmount } from "@/components/EditableAmount";
+import EditableAmount from "@/components/EditableAmount";
 
 const Settings = () => {
   const { profile, setProfileType, updateProfileIncome, isLoading } = useBudget();
