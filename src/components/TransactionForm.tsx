@@ -60,6 +60,7 @@ const TransactionForm = ({ onComplete }: TransactionFormProps) => {
     onComplete();
   };
   
+  // Filter categories by the selected type
   const filteredCategories = categories.filter(cat => cat.type === type);
   
   return (
@@ -113,12 +114,15 @@ const TransactionForm = ({ onComplete }: TransactionFormProps) => {
             <SelectContent>
               {filteredCategories.length > 0 ? (
                 filteredCategories.map((category) => (
-                  <SelectItem key={category.id} value={category.id || "default-category"}>
+                  <SelectItem 
+                    key={category.id || `category-${category.name}`} 
+                    value={category.id || `category-${category.name}`}
+                  >
                     {category.name}
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem value="no-categories">No categories available</SelectItem>
+                <SelectItem value="no-categories-available">No categories available</SelectItem>
               )}
             </SelectContent>
           </Select>
