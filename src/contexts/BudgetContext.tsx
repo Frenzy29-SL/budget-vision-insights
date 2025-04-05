@@ -15,10 +15,12 @@ interface BudgetContextType {
   profile: Profile | null;
   isLoading: boolean;
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  updateTransaction: (transactionId: string, amount: number) => void;
   updateBudget: (budget: Budget) => void;
   addGoal: (goal: Omit<Goal, 'id'>) => void;
   updateGoal: (goal: Goal) => void;
   setProfileType: (type: ProfileType) => void;
+  updateProfileIncome: (amount: number) => void;
   getExpensesByCategory: () => Record<string, number>;
   getIncomeVsExpense: () => { income: number; expense: number };
   getMonthlyTrends: () => Array<{ month: string; income: number; expense: number }>;
@@ -61,6 +63,25 @@ export const BudgetProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       toast({
         title: "Error adding transaction",
         description: "There was a problem adding your transaction.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const updateTransaction = (transactionId: string, amount: number) => {
+    try {
+      const updatedTransaction = budgetService.updateTransaction(transactionId, amount);
+      if (updatedTransaction) {
+        setTransactions(prev => prev.map(t => t.id === transactionId ? updatedTransaction : t));
+        toast({
+          title: "Transaction updated",
+          description: `Transaction amount updated to $${amount.toFixed(2)}.`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error updating transaction",
+        description: "There was a problem updating your transaction.",
         variant: "destructive"
       });
     }
@@ -134,6 +155,23 @@ export const BudgetProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     }
   };
 
+  const updateProfileIncome = (amount: number) => {
+    try {
+      const updatedProfile = budgetService.updateProfileIncome(amount);
+      setProfile(updatedProfile);
+      toast({
+        title: "Income updated",
+        description: `Your monthly income has been updated to $${amount.toFixed(2)}.`
+      });
+    } catch (error) {
+      toast({
+        title: "Error updating income",
+        description: "There was a problem updating your income.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const getExpensesByCategory = () => budgetService.getExpensesByCategory();
   const getIncomeVsExpense = () => budgetService.getIncomeVsExpense();
   const getMonthlyTrends = () => budgetService.getMonthlyTrends();
@@ -151,10 +189,12 @@ export const BudgetProvider: React.FC<{ children: ReactNode }> = ({ children }) 
         profile,
         isLoading,
         addTransaction,
+        updateTransaction,
         updateBudget,
         addGoal,
         updateGoal,
         setProfileType,
+        updateProfileIncome,
         getExpensesByCategory,
         getIncomeVsExpense,
         getMonthlyTrends,

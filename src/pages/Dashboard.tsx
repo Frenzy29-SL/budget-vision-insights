@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { useBudget } from "@/contexts/BudgetContext";
@@ -25,6 +26,7 @@ import {
 } from "recharts";
 import TransactionForm from "@/components/TransactionForm";
 import { TransactionItem } from "@/components/TransactionItem";
+import EditableAmount from "@/components/EditableAmount";
 
 const Dashboard = () => {
   const { 
@@ -35,7 +37,9 @@ const Dashboard = () => {
     getDailySpendings,
     getExpensesByCategory,
     categories,
-    profile
+    profile,
+    updateProfileIncome,
+    updateTransaction
   } = useBudget();
   
   const [showTransactionForm, setShowTransactionForm] = useState(false);
@@ -45,6 +49,31 @@ const Dashboard = () => {
   const monthlyTrends = getMonthlyTrends();
   const dailySpendings = getDailySpendings();
   const categoryExpenses = getExpensesByCategory();
+
+  const handleUpdateIncome = (newAmount: number) => {
+    if (profile) {
+      updateProfileIncome(newAmount);
+    }
+  };
+
+  const handleUpdateBalance = (newAmount: number) => {
+    // To update balance, we need to create a new transaction that adjusts the balance
+    // We find the first income transaction and update it to achieve the desired balance
+    const incomeTransactions = transactions.filter(t => t.type === 'income');
+    
+    if (incomeTransactions.length > 0) {
+      const firstIncomeTransaction = incomeTransactions[0];
+      // Calculate the difference needed to make the balance equal to newAmount
+      const currentBalance = income - expense;
+      const difference = newAmount - currentBalance;
+      
+      // Update the transaction amount
+      const newTransactionAmount = firstIncomeTransaction.amount + difference;
+      if (newTransactionAmount >= 0) {
+        updateTransaction(firstIncomeTransaction.id, newTransactionAmount);
+      }
+    }
+  };
 
   // Handle potential null profile
   if (!profile) {
@@ -99,7 +128,11 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-bold text-purple-900">${balance.toFixed(2)}</div>
+                  <EditableAmount 
+                    value={balance} 
+                    onUpdate={handleUpdateBalance} 
+                    className="text-purple-900"
+                  />
                   <div className="text-xs text-purple-700 mt-1">Current funds</div>
                 </div>
               </CardContent>
@@ -114,7 +147,19 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-bold text-purple-900">${income.toFixed(2)}</div>
+                  <EditableAmount 
+                    value={income} 
+                    onUpdate={(newAmount) => {
+                      // Find an income transaction to update
+                      const incomeTransactions = transactions.filter(t => t.type === 'income');
+                      if (incomeTransactions.length > 0) {
+                        const totalCurrentIncome = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+                        const difference = newAmount - totalCurrentIncome;
+                        updateTransaction(incomeTransactions[0].id, incomeTransactions[0].amount + difference);
+                      }
+                    }}
+                    className="text-purple-900" 
+                  />
                   <div className="text-xs text-green-600 flex items-center mt-1">
                     <TrendingUp size={14} className="mr-1" />
                     <span>+10% from last month</span>
@@ -132,7 +177,19 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="mt-2">
-                  <div className="text-2xl font-bold text-purple-900">${expense.toFixed(2)}</div>
+                  <EditableAmount 
+                    value={expense} 
+                    onUpdate={(newAmount) => {
+                      // Find an expense transaction to update
+                      const expenseTransactions = transactions.filter(t => t.type === 'expense');
+                      if (expenseTransactions.length > 0) {
+                        const totalCurrentExpense = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+                        const difference = newAmount - totalCurrentExpense;
+                        updateTransaction(expenseTransactions[0].id, expenseTransactions[0].amount + difference);
+                      }
+                    }}
+                    className="text-purple-900" 
+                  />
                   <div className="text-xs text-red-500 flex items-center mt-1">
                     <TrendingDown size={14} className="mr-1" />
                     <span>+5% from last month</span>
@@ -273,7 +330,11 @@ const Dashboard = () => {
                 <div>
                   <div className="flex justify-between text-sm mb-1">
                     <span>Monthly Income:</span>
-                    <span className="font-medium">${profile.income}</span>
+                    <EditableAmount 
+                      value={profile.income} 
+                      onUpdate={handleUpdateIncome} 
+                      className="text-sm font-medium" 
+                    />
                   </div>
                   <div className="flex justify-between text-sm mb-1">
                     <span>Savings Target:</span>

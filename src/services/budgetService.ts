@@ -33,6 +33,18 @@ class BudgetService {
     return newTransaction;
   }
 
+  updateTransaction(transactionId: string, amount: number): Transaction | null {
+    const index = this.data.transactions.findIndex(t => t.id === transactionId);
+    if (index >= 0) {
+      this.data.transactions[index] = {
+        ...this.data.transactions[index],
+        amount
+      };
+      return this.data.transactions[index];
+    }
+    return null;
+  }
+
   // Budget methods
   getAllBudgets(): Budget[] {
     return this.data.budgets;
@@ -79,6 +91,16 @@ class BudgetService {
 
   setProfileType(type: ProfileType): Profile {
     this.data.currentProfile = { ...profileTemplates[type] };
+    return this.data.currentProfile;
+  }
+
+  updateProfileIncome(amount: number): Profile {
+    if (this.data.currentProfile) {
+      this.data.currentProfile = {
+        ...this.data.currentProfile,
+        income: amount
+      };
+    }
     return this.data.currentProfile;
   }
 
