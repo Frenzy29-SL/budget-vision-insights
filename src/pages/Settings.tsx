@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { useBudget } from "@/contexts/BudgetContext";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,19 +15,53 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Briefcase, GraduationCap, Home, Save, ChevronRight,
   LifeBuoy, MonitorSmartphone, SlidersHorizontal, ShieldCheck
 } from "lucide-react";
+import { ProfileType } from "@/types/budget";
+import { EditableAmount } from "@/components/EditableAmount";
 
 const Settings = () => {
-  const { profile, setProfileType } = useBudget();
-  const [selectedProfile, setSelectedProfile] = useState<"employee" | "student" | "housewife">(profile.type);
+  const { profile, setProfileType, updateProfileIncome, isLoading } = useBudget();
+  const [selectedProfile, setSelectedProfile] = useState<ProfileType>("employee");
   
-  const handleProfileChange = (type: "employee" | "student" | "housewife") => {
+  // Update the selected profile when the actual profile loads
+  useEffect(() => {
+    if (profile) {
+      setSelectedProfile(profile.type);
+    }
+  }, [profile]);
+  
+  const handleProfileChange = (type: ProfileType) => {
     setSelectedProfile(type);
     setProfileType(type);
   };
+
+  const handleIncomeUpdate = (amount: number) => {
+    updateProfileIncome(amount);
+  };
+  
+  if (isLoading || !profile) {
+    return (
+      <Layout title="Settings">
+        <div className="space-y-8">
+          <Card className="shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium mb-6">Profile Settings</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
+              </div>
+            </CardContent>
+          </Card>
+          <Skeleton className="h-80 w-full" />
+        </div>
+      </Layout>
+    );
+  }
   
   return (
     <Layout title="Settings">
@@ -211,13 +245,11 @@ const Settings = () => {
                     
                     <div className="space-y-2">
                       <Label htmlFor="monthly-income">Monthly Income</Label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2.5">$</span>
-                        <Input 
-                          id="monthly-income" 
-                          type="number" 
-                          className="pl-7" 
-                          defaultValue={profile.income}
+                      <div className="w-full">
+                        <EditableAmount 
+                          value={profile.income} 
+                          onUpdate={handleIncomeUpdate}
+                          prefix="$" 
                         />
                       </div>
                     </div>
